@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Quebrada Alerta (Piura) - API de alertas, vecinos y fotos.
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.12
+
+Parameters:
+  AlmacenImagenes:
+    Type: String
+    Default: local
+    AllowedValues: [local, cloudinary]
+    Description: Dónde se guardan las fotos de los vecinos.
+
+Resources:
+  ApiAlertas:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: backend/src/
+      Handler: alertas.interfaces.lambda_handler.handler
+      Environment:
+        Variables:
+          AGENTE_ALMACEN_IMAGENES: !Ref AlmacenImagenes
+          ALERTAS_INTERVALO_S: '0'
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  UrlApi:
+    Description: URL pública de la API (https)
+    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/'
